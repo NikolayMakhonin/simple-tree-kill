@@ -17,6 +17,42 @@ function _spawn(command: string, args: string[], sync?: boolean) {
 	}
 }
 
+function getChildPidsUnix(parentPid: number|string): string[] {
+	const psTree = spawnSync('ps', ['-o', 'pid=,ppid='], {
+		windowsHide: true,
+		encoding   : 'ascii',
+	})
+		.stdout
+		.split('\n')
+		.reduce((tree, o) => {
+			let [pid, ppid] = o.split(/ +/)
+			pid = pid.trim()
+			ppid = ppid.trim()
+			let childPids = tree[ppid]
+			if (!childPids) {
+				tree[ppid] = childPids = []
+			}
+			childPids.push(pid)
+			return tree
+		}, {})
+
+	const allChildPids = []
+	function appendChildPids(pid: string) {
+		const childs = psTree[pid]
+		if (childs) {
+			for (let i = 0, len = childs.length; i < len; i++) {
+				const childPid = childs[i]
+				allChildPids.push(childPid)
+				appendChildPids(childPid)
+			}
+		}
+	}
+
+	appendChildPids(parentPid.toString())
+
+	return allChildPids
+}
+
 export function treeKillUnix({
 	pid,
 	signal = 'SIGHUP',
@@ -26,7 +62,9 @@ export function treeKillUnix({
 	signal: NodeJS.Signals | number,
 	sync?: boolean,
 }) {
-	_spawn('pkill', ['--signal', signal.toString(), '-P', pid.toString()], sync)
+	const childPids = getChildPidsUnix(pid)
+	childPids.push(pid.toString())
+	_spawn('kill', ['-s', signal.toString(), ...childPids], sync)
 }
 
 export function treeKillWindows({
