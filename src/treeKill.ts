@@ -17,6 +17,7 @@ function getChildPidsUnix(parentPid: number|string): string[] {
 			if (!line) {
 				return tree
 			}
+			console.log('ps: ' + line)
 			let [pid, ppid, sid] = line.split(/ +/)
 			pid = pid.trim()
 			ppid = ppid.trim()
