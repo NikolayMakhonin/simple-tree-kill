@@ -43,8 +43,10 @@ function getChildPidsUnix(parentPid: number|string): string[] {
 		if (childs) {
 			for (let i = 0, len = childs.length; i < len; i++) {
 				const childPid = childs[i]
-				allChildPids.push(childPid)
-				appendChildPids(childPid)
+				if (childPid !== pid) {
+					allChildPids.push(childPid)
+					appendChildPids(childPid)
+				}
 			}
 		}
 	}
