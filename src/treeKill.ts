@@ -34,19 +34,12 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 			let [pid, ppid] = line.split(/ +/)
 			pid = pid.trim()
 			ppid = ppid.trim()
-			// sid = sid.trim()
 
 			let childPids = tree[ppid]
 			if (!childPids) {
 				tree[ppid] = childPids = []
 			}
 			childPids.push(pid)
-
-			// childPids = tree[sid]
-			// if (!childPids) {
-			// 	tree[sid] = childPids = []
-			// }
-			// childPids.push(pid)
 
 			return tree
 		}, {})
@@ -104,7 +97,7 @@ export function treeKillWindows({
 	if (force) {
 		params.push('/F')
 	}
-	params.push('/T', '/PID')
+	params.push('/T')
 	pids = distinct(pids)
 	for (let i = 0; i < pids.length; i++) {
 		params.push('/PID')
