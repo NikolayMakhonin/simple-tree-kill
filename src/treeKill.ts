@@ -66,7 +66,7 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 						allChildPids.add(childPid)
 					}
 				}
-				appendChildPids(childs)
+				appendChildPids(childs, pid)
 			}
 		}
 	}
