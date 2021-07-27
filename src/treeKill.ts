@@ -1,4 +1,4 @@
-import {spawn, spawnSync, StdioOptions} from 'child_process'
+import {spawn, spawnSync} from 'child_process'
 
 const _spawnSync: typeof spawnSync = ((command, args, options) => {
 	console.log(command + ' ' + args.join(' '))
@@ -115,23 +115,19 @@ export function treeKill({
 	parentsPids,
 	ignorePids,
 	force,
-	showWarnings,
 }: {
 	parentsPids: (number|string)[],
 	ignorePids?: (number|string)[],
 	force: boolean,
-	showWarnings?: boolean,
 }) {
 	const _parentsPids = parentsPids.map(o => o.toString().trim())
+	const _ignorePids = ignorePids.map(o => o.toString().trim())
+	console.log('treeKill parents: ' + _parentsPids.join(' ') + ' ignore: ' + _parentsPids.join(' '))
 	const treePidsSet = getChildPids(_parentsPids)
 
 	setAddAll(treePidsSet, _parentsPids)
-	setDeleteAll(treePidsSet, ignorePids)
+	setDeleteAll(treePidsSet, _ignorePids)
 	const treePids = setToArray(treePidsSet)
-
-	const stdio: StdioOptions = showWarnings
-		? 'inherit'
-		: ['inherit', 'inherit', 'ignore']
 
 	if (process.platform === 'win32') {
 		const params: string[] = []
