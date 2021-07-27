@@ -1,6 +1,6 @@
 {
 	"name": "@flemist/simple-tree-kill",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"description": "Cross-platform simple tree kill processes or correct finalize multi-processes app",
 	"author": {
 		"name": "Nikolay Makhonin",
