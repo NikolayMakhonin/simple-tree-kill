@@ -1,24 +1,12 @@
-import {spawn, spawnSync} from 'child_process'
+import {spawnSync} from 'child_process'
 
-function _spawn(command: string, args: string[], sync?: boolean) {
+const _spawnSync: typeof spawnSync = ((command, args, options) => {
 	console.log(command + ' ' + args.join(' '))
-	if (sync) {
-		spawnSync(command, args, {
-			stdio      : 'inherit', // 'ignore',
-			windowsHide: true,
-		})
-	} else {
-		spawn(command, args, {
-			detached   : true,
-			stdio      : 'ignore',
-			windowsHide: true,
-		})
-			.unref()
-	}
-}
+	return spawnSync(command, args, options)
+}) as any
 
 function getChildPidsUnix(parentPid: number|string): string[] {
-	const psTree = spawnSync('ps', ['-o', 'pid=,ppid='], {
+	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid='], {
 		windowsHide: true,
 		encoding   : 'ascii',
 	})
@@ -56,46 +44,46 @@ function getChildPidsUnix(parentPid: number|string): string[] {
 export function treeKillUnix({
 	pid,
 	signal = 'SIGHUP',
-	sync,
 }: {
 	pid: number,
 	signal: NodeJS.Signals | number,
-	sync?: boolean,
 }) {
 	const childPids = getChildPidsUnix(pid)
 	childPids.push(pid.toString())
-	_spawn('kill', ['-s', signal.toString(), ...childPids], sync)
+	_spawnSync('kill', ['-s', signal.toString(), ...childPids], {
+		stdio      : 'inherit',
+		windowsHide: true,
+	})
 }
 
 export function treeKillWindows({
 	pid,
 	force,
-	sync,
 }: {
 	pid: number,
 	force?: boolean,
-	sync?: boolean,
 }) {
 	const params: string[] = []
 	if (force) {
 		params.push('/F')
 	}
 	params.push('/T', '/PID', pid.toString())
-	_spawn('taskkill', params, sync)
+	_spawnSync('taskkill', params, {
+		stdio      : 'inherit',
+		windowsHide: true,
+	})
 }
 
 export function treeKill({
 	pid,
 	force,
-	sync,
 }: {
 	pid: number,
 	force?: boolean,
-	sync?: boolean,
 }) {
 	if (process.platform === 'win32') {
-		treeKillWindows({pid, force, sync})
+		treeKillWindows({pid, force})
 	} else {
-		treeKillUnix({pid, signal: force ? 'SIGKILL' : 'SIGHUP', sync})
+		treeKillUnix({pid, signal: force ? 'SIGKILL' : 'SIGHUP'})
 	}
 }
