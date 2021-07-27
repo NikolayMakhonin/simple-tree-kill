@@ -23,11 +23,11 @@ describe('finalize', function () {
 			'0',
 			_cliId,
 		], {
-			detached: true,
+			// detached: true,
 			windowsHide: true,
-			stdio: 'ignore',
+			stdio: 'inherit', // 'ignore',
 		})
-		proc.unref()
+		// proc.unref()
 
 		console.log('App pid: ' + proc.pid)
 
