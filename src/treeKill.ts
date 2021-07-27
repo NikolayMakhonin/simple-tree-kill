@@ -6,7 +6,7 @@ const _spawnSync: typeof spawnSync = ((command, args, options) => {
 }) as any
 
 function getChildPidsUnix(parentPid: number|string): string[] {
-	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid='], {
+	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid=,sid='], {
 		windowsHide: true,
 		encoding   : 'ascii',
 	})
@@ -17,14 +17,23 @@ function getChildPidsUnix(parentPid: number|string): string[] {
 			if (!line) {
 				return tree
 			}
-			let [pid, ppid] = line.split(/ +/)
+			let [pid, ppid, sid] = line.split(/ +/)
 			pid = pid.trim()
 			ppid = ppid.trim()
+			sid = sid.trim()
+
 			let childPids = tree[ppid]
 			if (!childPids) {
 				tree[ppid] = childPids = []
 			}
 			childPids.push(pid)
+
+			childPids = tree[sid]
+			if (!childPids) {
+				tree[sid] = childPids = []
+			}
+			childPids.push(pid)
+
 			return tree
 		}, {})
 
