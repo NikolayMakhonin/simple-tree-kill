@@ -72,16 +72,20 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 export function treeKillUnix({
 	pids,
 	signal = 'SIGHUP',
+	showWarnings,
 }: {
 	pids: (number|string)[],
 	signal: NodeJS.Signals | number,
+	showWarnings?: boolean,
 }) {
 	const _pids = pids.map(o => o.toString())
 	const childPids = getChildPidsUnix(_pids)
 	childPids.push(..._pids)
 	const treePids = distinct(childPids)
 	_spawnSync('kill', ['-s', signal.toString(), ...treePids], {
-		stdio      : 'inherit',
+		stdio: showWarnings
+			? 'inherit'
+			: ['inherit', 'inherit', 'ignore'],
 		windowsHide: true,
 	})
 }
@@ -89,9 +93,11 @@ export function treeKillUnix({
 export function treeKillWindows({
 	pids,
 	force,
+	showWarnings,
 }: {
 	pids: (number|string)[],
 	force?: boolean,
+	showWarnings?: boolean,
 }) {
 	const params: string[] = []
 	if (force) {
@@ -104,7 +110,9 @@ export function treeKillWindows({
 		params.push(pids[i].toString())
 	}
 	_spawnSync('taskkill', params, {
-		stdio      : 'inherit',
+		stdio: showWarnings
+			? 'inherit'
+			: ['inherit', 'inherit', 'ignore'],
 		windowsHide: true,
 	})
 }
@@ -112,9 +120,11 @@ export function treeKillWindows({
 export function treeKill({
 	pids,
 	force,
+	showWarnings,
 }: {
 	pids: (number|string)[],
 	force?: boolean,
+	showWarnings?: boolean,
 }) {
 	if (process.platform === 'win32') {
 		treeKillWindows({pids, force})
