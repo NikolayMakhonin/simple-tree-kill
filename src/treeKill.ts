@@ -38,7 +38,7 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 			return tree
 		}, {})
 
-	const allChildPids = []
+	const allChildPids = {}
 	function appendChildPids(pids: string[]) {
 		for (let i = 0, len = pids.length; i < len; i++) {
 			const pid = pids[i]
@@ -48,7 +48,7 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 					const childPid = childs[j]
 					if (childPid !== pid) {
 						if (parentPids.indexOf(childPid) < 0) {
-							allChildPids.push(childPid)
+							allChildPids[childPid] = true
 						}
 						appendChildPids(childPid)
 					}
@@ -59,7 +59,7 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 
 	appendChildPids(parentPids)
 
-	return allChildPids
+	return Object.keys(allChildPids)
 }
 
 export function treeKillUnix({
