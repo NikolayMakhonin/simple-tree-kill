@@ -11,7 +11,7 @@ describe('finalize', function () {
 
 	it('finalizeCurrentProcess', async function () {
 		let _ps = await ps()
-		console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
+		// console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
 
 		let processes = _ps.filter(proc => {
 			return proc.command.indexOf(_cliId) >= 0
@@ -36,7 +36,7 @@ describe('finalize', function () {
 		await delay(200)
 
 		_ps = await ps()
-		console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
+		// console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
 		processes = _ps.filter(proc => {
 			return proc.command.indexOf('finalize-test.js 0 ') >= 0
 		})
@@ -54,7 +54,7 @@ describe('finalize', function () {
 		await delay(2000)
 
 		_ps = await ps()
-		console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
+		// console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
 		processes = _ps.filter(proc => {
 			return proc.command.indexOf('finalize-test.js 0 ') >= 0
 		})
@@ -70,11 +70,13 @@ describe('finalize', function () {
 		await delay(5000)
 
 		_ps = await ps()
-		console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
+		// console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
 		processes = _ps.filter(proc => {
 			return proc.command.indexOf(_cliId) >= 0
 				|| proc.command.indexOf('finalize-test.js 0 ') >= 0
 		})
 		assert.deepStrictEqual(processes, [])
+
+		assert.strictEqual(proc.exitCode, 0)
 	})
 })

@@ -31,15 +31,17 @@ process.once('exit', () => {
 	}
 
 	if (level === 0) {
+		console.log('treeKill start')
 		treeKill({
 			parentsPids: [process.pid],
 			ignorePids : [process.pid],
 			force      : true,
 		})
+		console.log('treeKill end')
 	}
 
 	// eslint-disable-next-line no-process-exit
-	process.exit(0)
+	// process.exit(0)
 })
 
 if (level === 0) {
