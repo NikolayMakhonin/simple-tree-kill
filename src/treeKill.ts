@@ -1,6 +1,7 @@
 import {spawn, spawnSync} from 'child_process'
 
 function _spawn(command: string, args: string[], sync?: boolean) {
+	console.log(command + args.join(' '))
 	if (sync) {
 		spawnSync(command, args, {
 			stdio      : 'ignore',
