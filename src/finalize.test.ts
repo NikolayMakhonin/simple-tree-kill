@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 import {spawn} from 'child_process'
-import {ps} from '@flemist/ps-cross-platform'
+import {ps, TProcess} from '@flemist/ps-cross-platform'
 import assert from 'assert'
 import {delay} from './delay'
 
@@ -32,7 +32,7 @@ describe('finalize', function () {
 		console.log('Wait app open')
 		await delay(200)
 
-		let _ps = await ps()
+		let _ps: TProcess[] = await ps()
 		processes = _ps.filter(proc => {
 			return proc.command.indexOf('finalize-test.js 0 ') >= 0
 		})
@@ -63,10 +63,12 @@ describe('finalize', function () {
 		console.log('Wait app finalize')
 		await delay(5000)
 
-		processes = (await ps()).filter(proc => {
+		_ps = await ps()
+		processes = _ps.filter(proc => {
 			return proc.command.indexOf(_cliId) >= 0
 				|| proc.command.indexOf('finalize-test.js 0 ') >= 0
 		})
+		console.log(_ps.map(o => `${o.pid}  ${o.ppid}  ${o.command}`).join('\r\n'))
 		assert.deepStrictEqual(processes, [])
 	})
 })
