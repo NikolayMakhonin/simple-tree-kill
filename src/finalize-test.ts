@@ -22,7 +22,7 @@ function runChild(shell: boolean) {
 	proc.unref()
 }
 
-const runChildBeforeClose = false // (level === 0 || level === 2) && process.platform === 'win32'
+const runChildBeforeClose = level === 1 // (level === 0 || level === 2) && process.platform === 'win32'
 
 process.once('exit', () => {
 	if (runChildBeforeClose) {

@@ -13,15 +13,11 @@ function getChildPidsUnix(parentPid: number|string): string[] {
 		.stdout
 		.split('\n')
 		.reduce((tree, line) => {
-			console.log('ps: ' + line)
 			line = line.trim()
 			if (!line) {
 				return tree
 			}
 			let [pid, ppid] = line.split(/ +/)
-			if (!ppid) {
-				return tree
-			}
 			pid = pid.trim()
 			ppid = ppid.trim()
 			let childPids = tree[ppid]
