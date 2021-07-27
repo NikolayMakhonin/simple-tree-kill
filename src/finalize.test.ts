@@ -77,6 +77,6 @@ describe('finalize', function () {
 		})
 		assert.deepStrictEqual(processes, [])
 
-		assert.strictEqual(proc.exitCode, 0)
+		assert.ok(!proc.exitCode, 'proc.exitCode=' + proc.exitCode)
 	})
 })
