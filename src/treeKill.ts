@@ -19,7 +19,7 @@ function distinct<T>(arr: T[]): T[] {
 function getChildPidsUnix(parentPids: string[]): string[] {
 	const parentPidsSet = toSet(parentPids)
 
-	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid=,sid='], {
+	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid='], {
 		windowsHide: true,
 		encoding   : 'ascii',
 	})
@@ -31,10 +31,10 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 				return tree
 			}
 			console.log('ps: ' + line)
-			let [pid, ppid, sid] = line.split(/ +/)
+			let [pid, ppid] = line.split(/ +/)
 			pid = pid.trim()
 			ppid = ppid.trim()
-			sid = sid.trim()
+			// sid = sid.trim()
 
 			let childPids = tree[ppid]
 			if (!childPids) {
@@ -42,11 +42,11 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 			}
 			childPids.push(pid)
 
-			childPids = tree[sid]
-			if (!childPids) {
-				tree[sid] = childPids = []
-			}
-			childPids.push(pid)
+			// childPids = tree[sid]
+			// if (!childPids) {
+			// 	tree[sid] = childPids = []
+			// }
+			// childPids.push(pid)
 
 			return tree
 		}, {})
