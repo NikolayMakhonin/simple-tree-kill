@@ -19,7 +19,7 @@ function distinct<T>(arr: T[]): T[] {
 function getChildPidsUnix(parentPids: string[]): string[] {
 	const parentPidsSet = toSet(parentPids)
 
-	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid='], {
+	const psTree = _spawnSync('ps', ['-A', '-o', 'pid=,ppid='], {
 		windowsHide: true,
 		encoding   : 'ascii',
 	})
