@@ -5,19 +5,35 @@ const _spawnSync: typeof spawnSync = ((command, args, options) => {
 	return spawnSync(command, args, options)
 }) as any
 
-function toSet<T>(arr: T[]): Set<T> {
+function arrayToSet<T>(arr: T[]): Set<T> {
 	return arr.reduce((set, o) => {
 		set.add(o)
 		return set
 	}, new Set<T>())
 }
 
-function distinct<T>(arr: T[]): T[] {
-	return Array.from(toSet(arr).values())
+function setToArray<T>(set: Set<T>): T[] {
+	return Array.from(set.values())
 }
 
-function getChildPidsUnix(parentPids: string[]): string[] {
-	const parentPidsSet = toSet(parentPids)
+function setDeleteAll<T>(set: Set<T>, items: T[]) {
+	if (items) {
+		for (let i = 0, len = items.length; i < len; i++) {
+			set.delete(items[i])
+		}
+	}
+}
+
+function setAddAll<T>(set: Set<T>, items: T[]) {
+	if (items) {
+		for (let i = 0, len = items.length; i < len; i++) {
+			set.add(items[i])
+		}
+	}
+}
+
+function getChildPidsUnix(parentPids: string[]): Set<string> {
+	const parentPidsSet = arrayToSet(parentPids)
 
 	const psTree = _spawnSync('ps', ['-A', '-o', 'pid=,ppid='], {
 		windowsHide: true,
@@ -66,22 +82,27 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 
 	appendChildPids(parentPids)
 
-	return Array.from(allChildPids.values())
+	return allChildPids
 }
 
 export function treeKillUnix({
-	pids,
+	parentsPids,
+	ignorePids,
 	signal = 'SIGHUP',
 	showWarnings,
 }: {
-	pids: (number|string)[],
+	parentsPids: (number|string)[],
+	ignorePids?: (number|string)[],
 	signal: NodeJS.Signals | number,
 	showWarnings?: boolean,
 }) {
-	const _pids = pids.map(o => o.toString())
-	const childPids = getChildPidsUnix(_pids)
-	childPids.push(..._pids)
-	const treePids = distinct(childPids)
+	const _parentsPids = parentsPids.map(o => o.toString().trim())
+	const treePidsSet = getChildPidsUnix(_parentsPids)
+
+	setAddAll(treePidsSet, _parentsPids)
+	setDeleteAll(treePidsSet, ignorePids)
+	const treePids = setToArray(treePidsSet)
+
 	_spawnSync('kill', ['-s', signal.toString(), ...treePids], {
 		stdio: showWarnings
 			? 'inherit'
@@ -91,23 +112,30 @@ export function treeKillUnix({
 }
 
 export function treeKillWindows({
-	pids,
+	parentsPids,
+	ignorePids,
 	force,
 	showWarnings,
 }: {
-	pids: (number|string)[],
+	parentsPids: (number|string)[],
+	ignorePids?: (number|string)[],
 	force?: boolean,
 	showWarnings?: boolean,
 }) {
+	let _parentsPids = parentsPids.map(o => o.toString().trim())
+	const parentsPidsSet = arrayToSet(_parentsPids)
+	setDeleteAll(parentsPidsSet, ignorePids)
+	_parentsPids = setToArray(parentsPidsSet)
+
 	const params: string[] = []
 	if (force) {
 		params.push('/F')
 	}
 	params.push('/T')
-	pids = distinct(pids)
-	for (let i = 0; i < pids.length; i++) {
+
+	for (let i = 0; i < _parentsPids.length; i++) {
 		params.push('/PID')
-		params.push(pids[i].toString())
+		params.push(_parentsPids[i].toString())
 	}
 	_spawnSync('taskkill', params, {
 		stdio: showWarnings
@@ -118,17 +146,19 @@ export function treeKillWindows({
 }
 
 export function treeKill({
-	pids,
+	parentsPids,
+	ignorePids,
 	force,
 	showWarnings,
 }: {
-	pids: (number|string)[],
+	parentsPids: (number|string)[],
+	ignorePids?: (number|string)[],
 	force?: boolean,
 	showWarnings?: boolean,
 }) {
 	if (process.platform === 'win32') {
-		treeKillWindows({pids, force})
+		treeKillWindows({parentsPids, ignorePids, force, showWarnings})
 	} else {
-		treeKillUnix({pids, signal: force ? 'SIGKILL' : 'SIGHUP'})
+		treeKillUnix({parentsPids, ignorePids, signal: force ? 'SIGKILL' : 'SIGHUP', showWarnings})
 	}
 }
