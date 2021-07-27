@@ -5,7 +5,20 @@ const _spawnSync: typeof spawnSync = ((command, args, options) => {
 	return spawnSync(command, args, options)
 }) as any
 
+function toSet<T>(arr: T[]): Set<T> {
+	return arr.reduce((set, o) => {
+		set.add(o)
+		return set
+	}, new Set<T>())
+}
+
+function distinct<T>(arr: T[]): T[] {
+	return Array.from(toSet(arr).values())
+}
+
 function getChildPidsUnix(parentPids: string[]): string[] {
+	const parentPidsSet = toSet(parentPids)
+
 	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid=,sid='], {
 		windowsHide: true,
 		encoding   : 'ascii',
@@ -38,7 +51,7 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 			return tree
 		}, {})
 
-	const allChildPids = {}
+	const allChildPids = new Set<string>()
 	function appendChildPids(pids: string[]) {
 		for (let i = 0, len = pids.length; i < len; i++) {
 			const pid = pids[i]
@@ -47,8 +60,8 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 				for (let j = 0, len2 = childs.length; j < len2; j++) {
 					const childPid = childs[j]
 					if (childPid !== pid) {
-						if (parentPids.indexOf(childPid) < 0) {
-							allChildPids[childPid] = true
+						if (!parentPidsSet.has(childPid)) {
+							allChildPids.add(childPid)
 						}
 						appendChildPids(childPid)
 					}
@@ -59,7 +72,7 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 
 	appendChildPids(parentPids)
 
-	return Object.keys(allChildPids)
+	return Array.from(allChildPids.values())
 }
 
 export function treeKillUnix({
@@ -72,7 +85,8 @@ export function treeKillUnix({
 	const _pids = pids.map(o => o.toString())
 	const childPids = getChildPidsUnix(_pids)
 	childPids.push(..._pids)
-	_spawnSync('kill', ['-s', signal.toString(), ...childPids], {
+	const treePids = distinct(childPids)
+	_spawnSync('kill', ['-s', signal.toString(), ...treePids], {
 		stdio      : 'inherit',
 		windowsHide: true,
 	})
@@ -90,6 +104,7 @@ export function treeKillWindows({
 		params.push('/F')
 	}
 	params.push('/T', '/PID')
+	pids = distinct(pids)
 	for (let i = 0; i < pids.length; i++) {
 		params.push('/PID')
 		params.push(pids[i].toString())
