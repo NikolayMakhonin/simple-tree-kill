@@ -5,7 +5,7 @@ const _spawnSync: typeof spawnSync = ((command, args, options) => {
 	return spawnSync(command, args, options)
 }) as any
 
-function getChildPidsUnix(parentPid: number|string): string[] {
+function getChildPidsUnix(parentPids: string[]): string[] {
 	const psTree = _spawnSync('ps', ['-o', 'pid=,ppid=,sid='], {
 		windowsHide: true,
 		encoding   : 'ascii',
@@ -39,33 +39,37 @@ function getChildPidsUnix(parentPid: number|string): string[] {
 		}, {})
 
 	const allChildPids = []
-	function appendChildPids(pid: string) {
-		const childs = psTree[pid]
-		if (childs) {
-			for (let i = 0, len = childs.length; i < len; i++) {
-				const childPid = childs[i]
-				if (childPid !== pid) {
-					allChildPids.push(childPid)
-					appendChildPids(childPid)
+	function appendChildPids(pids: string[]) {
+		for (let i = 0, len = pids.length; i < len; i++) {
+			const pid = pids[i]
+			const childs = psTree[pid]
+			if (childs) {
+				for (let j = 0, len2 = childs.length; j < len2; j++) {
+					const childPid = childs[j]
+					if (childPid !== pid) {
+						allChildPids.push(childPid)
+						appendChildPids(childPid)
+					}
 				}
 			}
 		}
 	}
 
-	appendChildPids(parentPid.toString())
+	appendChildPids(parentPids)
 
 	return allChildPids
 }
 
 export function treeKillUnix({
-	pid,
+	pids,
 	signal = 'SIGHUP',
 }: {
-	pid: number,
+	pids: (number|string)[],
 	signal: NodeJS.Signals | number,
 }) {
-	const childPids = getChildPidsUnix(pid)
-	childPids.push(pid.toString())
+	const _pids = pids.map(o => o.toString())
+	const childPids = getChildPidsUnix(_pids)
+	childPids.push(..._pids)
 	_spawnSync('kill', ['-s', signal.toString(), ...childPids], {
 		stdio      : 'inherit',
 		windowsHide: true,
@@ -73,17 +77,21 @@ export function treeKillUnix({
 }
 
 export function treeKillWindows({
-	pid,
+	pids,
 	force,
 }: {
-	pid: number,
+	pids: (number|string)[],
 	force?: boolean,
 }) {
 	const params: string[] = []
 	if (force) {
 		params.push('/F')
 	}
-	params.push('/T', '/PID', pid.toString())
+	params.push('/T', '/PID')
+	for (let i = 0; i < pids.length; i++) {
+		params.push('/PID')
+		params.push(pids[i].toString())
+	}
 	_spawnSync('taskkill', params, {
 		stdio      : 'inherit',
 		windowsHide: true,
@@ -91,15 +99,15 @@ export function treeKillWindows({
 }
 
 export function treeKill({
-	pid,
+	pids,
 	force,
 }: {
-	pid: number,
+	pids: (number|string)[],
 	force?: boolean,
 }) {
 	if (process.platform === 'win32') {
-		treeKillWindows({pid, force})
+		treeKillWindows({pids, force})
 	} else {
-		treeKillUnix({pid, signal: force ? 'SIGKILL' : 'SIGHUP'})
+		treeKillUnix({pids, signal: force ? 'SIGKILL' : 'SIGHUP'})
 	}
 }
