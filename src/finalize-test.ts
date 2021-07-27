@@ -31,7 +31,7 @@ process.once('exit', () => {
 	}
 
 	if (level === 0) {
-		treeKill({pid: process.pid, force: true, sync: true})
+		treeKill({pid: process.pid, force: true})
 	}
 
 	// eslint-disable-next-line no-process-exit
