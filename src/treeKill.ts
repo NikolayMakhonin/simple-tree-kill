@@ -47,7 +47,9 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 				for (let j = 0, len2 = childs.length; j < len2; j++) {
 					const childPid = childs[j]
 					if (childPid !== pid) {
-						allChildPids.push(childPid)
+						if (parentPids.indexOf(childPid) < 0) {
+							allChildPids.push(childPid)
+						}
 						appendChildPids(childPid)
 					}
 				}
