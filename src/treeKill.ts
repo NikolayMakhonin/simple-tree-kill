@@ -52,20 +52,21 @@ function getChildPidsUnix(parentPids: string[]): string[] {
 		}, {})
 
 	const allChildPids = new Set<string>()
-	function appendChildPids(pids: string[]) {
+	function appendChildPids(pids: string[], parentPid?: string) {
 		for (let i = 0, len = pids.length; i < len; i++) {
 			const pid = pids[i]
+			if (pid === parentPid) {
+				continue
+			}
 			const childs = psTree[pid]
 			if (childs) {
 				for (let j = 0, len2 = childs.length; j < len2; j++) {
 					const childPid = childs[j]
-					if (childPid !== pid) {
-						if (!parentPidsSet.has(childPid)) {
-							allChildPids.add(childPid)
-						}
-						appendChildPids(childPid)
+					if (!parentPidsSet.has(childPid)) {
+						allChildPids.add(childPid)
 					}
 				}
+				appendChildPids(childs)
 			}
 		}
 	}
