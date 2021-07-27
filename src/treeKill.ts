@@ -150,9 +150,11 @@ export function treeKill({
 		})
 			.unref()
 	} else {
-		_spawnSync('kill', ['-s', force ? 'SIGKILL' : 'SIGHUP', ...treePids], {
+		_spawn('kill', ['-s', force ? 'SIGKILL' : 'SIGHUP', ...treePids], {
+			detached   : true,
 			stdio      : 'ignore',
 			windowsHide: true,
 		})
+			.unref()
 	}
 }
