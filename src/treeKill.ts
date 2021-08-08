@@ -144,7 +144,7 @@ export function treeKill({
 	}
 
 	const _ignorePids = ignorePids.map(o => o.toString().trim())
-	console.log('treeKill parents: ' + _parentsPids.join(' ') + ' ignore: ' + _parentsPids.join(' '))
+	console.log('treeKill parents: ' + _parentsPids.join(' ') + ' ignore: ' + _ignorePids.join(' '))
 	const treePidsSet = getChildPids(_parentsPids)
 
 	setAddAll(treePidsSet, _parentsPids)
