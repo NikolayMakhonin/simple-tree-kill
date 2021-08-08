@@ -120,7 +120,29 @@ export function treeKill({
 	ignorePids?: (number|string)[],
 	force: boolean,
 }) {
-	const _parentsPids = parentsPids.map(o => o.toString().trim())
+	const _parentsPids = parentsPids
+		.map(o => o.toString().trim())
+		.filter(o => o)
+
+	// anti kill all protection
+	_parentsPids.forEach(pid => {
+		if (
+			pid === '0'
+			|| process.platform === 'win32' && pid === '4'
+			|| process.platform !== 'win32' && pid === '1'
+		) {
+			throw new Error('parentsPids has system pids: ' + JSON.stringify({
+				parentsPids,
+				ignorePids,
+				force,
+			}))
+		}
+	})
+
+	if (_parentsPids.length === 0) {
+		return
+	}
+
 	const _ignorePids = ignorePids.map(o => o.toString().trim())
 	console.log('treeKill parents: ' + _parentsPids.join(' ') + ' ignore: ' + _parentsPids.join(' '))
 	const treePidsSet = getChildPids(_parentsPids)
