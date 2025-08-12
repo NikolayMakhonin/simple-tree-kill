@@ -3,6 +3,7 @@
 
   * Major refactor: Split treeKill into separate getChildPids and kill functions
   * Added TypeScript types and JSDoc documentation  
+  * Added autoKillChilds() function for auto-cleanup on process exit
   * Fixed minor issues
   * Updated README with clear API documentation
   * Changed license to Unlimited Free

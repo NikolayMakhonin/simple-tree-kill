@@ -276,3 +276,26 @@ export function treeKill({
     force,
   })
 }
+
+/**
+ * Auto-kill child processes when current process exits
+ * Subscribes to exit events and kills children while preserving original exit code
+ * @returns Cleanup function to remove event listeners
+ */
+export function autoKillChilds(): () => void {
+	const killChildren = () => {
+		try {
+			treeKill({ parentsPids: [process.pid], ignorePids: [process.pid], force: true })
+		} catch {}
+	}
+	
+	process.on('exit', killChildren)
+	process.on('SIGINT', killChildren)
+	process.on('SIGTERM', killChildren)
+	
+	return () => {
+		process.off('exit', killChildren)
+		process.off('SIGINT', killChildren)
+		process.off('SIGTERM', killChildren)
+	}
+}

@@ -46,6 +46,10 @@ kill({
   pids: [1234, 5678],
   force: true
 })
+
+// Auto-kill children on process exit
+const cleanup = autoKillChilds()
+// Call cleanup() to stop auto-killing
 ```
 
 ## API
@@ -63,6 +67,9 @@ kill({
 ### kill(options)
 - `pids: (string|number)[]` - processes to kill
 - `force: boolean` - force kill vs graceful
+
+### autoKillChilds()
+Auto-kills child processes when current process exits. Returns cleanup function.
 
 ## Platform Support
 
