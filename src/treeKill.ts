@@ -286,7 +286,9 @@ export function autoKillChilds(): () => void {
 	const killChildren = () => {
 		try {
 			treeKill({ parentsPids: [process.pid], ignorePids: [process.pid], force: true })
-		} catch {}
+		} catch (e) {
+			console.error('Failed to kill child processes:', e.message)
+		}
 	}
 	
 	process.on('exit', killChildren)

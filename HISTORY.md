@@ -1,4 +1,4 @@
-1.0.0 / 2025-08-12
+1.0.1 / 2025-08-12
 ===================
 
   * Major refactor: Split treeKill into separate getChildPids and kill functions
