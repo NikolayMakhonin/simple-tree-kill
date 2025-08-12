@@ -140,8 +140,8 @@ function validateTreeKillParentPids(parentPids: string[], context: {
 	parentPids.forEach(pid => {
 		if (
 			pid === '0'
-			|| process.platform === 'win32' && pid === '4'  // Windows system process
-			|| process.platform !== 'win32' && pid === '1'  // Unix init process
+			|| process.platform === 'win32' && pid === '4' // Windows system process
+			|| process.platform !== 'win32' && pid === '1' // Unix init process
 		) {
 			throw new Error('parentsPids has system pids: ' + JSON.stringify(context))
 		}
@@ -207,7 +207,7 @@ export function kill({
 		// Windows: use taskkill command
 		const params: string[] = []
 		if (force) {
-			params.push('/F')  // Force kill
+			params.push('/F') // Force kill
 		}
 		for (let i = 0; i < _pids.length; i++) {
 			params.push('/PID')
