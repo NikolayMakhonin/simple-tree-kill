@@ -1,6 +1,6 @@
 {
 	"name": "@flemist/simple-tree-kill",
-	"version": "0.0.9",
+	"version": "1.0.0",
 	"description": "Cross-platform simple tree kill processes or correct finalize multi-processes app",
 	"author": {
 		"name": "Nikolay Makhonin",
@@ -14,14 +14,15 @@
 		"type": "git",
 		"url": "git+ssh://git@github.com:NikolayMakhonin/simple-tree-kill.git"
 	},
-	"license": "CC0-1.0",
+	"license": "Unlimited Free",
 	"keywords": [
 		"crossplatform",
 		"cross-platform",
 		"ps",
 		"wmic",
 		"processlist",
-		"process-list"
+		"process-list",
+		"process-tree"
 	],
 	"files": [
 		"dist/**"

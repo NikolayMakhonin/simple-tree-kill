@@ -8,11 +8,71 @@
 [![Node.js Version][node-version-image]][node-version-url]
 [![Build Status][github-actions-badge]][github-actions-url]
 
-# Description
+# @flemist/simple-tree-kill
+
+Cross-platform process tree killer for Node.js.
+
+## Install
+
+```bash
+npm install @flemist/simple-tree-kill
+```
+
+## Usage
+
+```typescript
+import { treeKill, getChildPids, kill } from '@flemist/simple-tree-kill'
+
+// Kill process and all children
+treeKill({
+  parentsPids: [1234],
+  force: true
+})
+
+// Kill multiple processes, skip some PIDs
+treeKill({
+  parentsPids: [1234, 5678],
+  ignorePids: [9999],
+  force: false
+})
+
+// Get all PIDs in tree without killing
+const pids = getChildPids({
+  parentsPids: [1234]
+})
+
+// Kill specific PIDs only
+kill({
+  pids: [1234, 5678],
+  force: true
+})
+```
+
+## API
+
+### treeKill(options)
+- `parentsPids: (number|string)[]` - processes to kill with children
+- `ignorePids?: (number|string)[]` - PIDs to skip
+- `force: boolean` - force kill vs graceful
+
+### getChildPids(options)  
+- `parentsPids: (number|string)[]` - parent processes
+- `ignorePids?: (number|string)[]` - PIDs to skip
+- Returns: `Set<string>` - all PIDs in tree
+
+### kill(options)
+- `pids: (string|number)[]` - processes to kill
+- `force: boolean` - force kill vs graceful
+
+## Platform Support
+
+- Windows: `taskkill`, `wmic`
+- Unix/Linux: `kill`, `ps`
+- Node.js >= 12
 
 # License
 
-[CC0-1.0](LICENSE)
+[Unlimited Free](LICENSE)
 
 [npm-image]: https://img.shields.io/npm/v/@flemist/simple-tree-kill.svg
 [npm-url]: https://npmjs.org/package/@flemist/simple-tree-kill
