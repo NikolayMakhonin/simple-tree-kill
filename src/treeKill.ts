@@ -1,3 +1,4 @@
+/* eslint-disable no-process-exit */
 /**
  * Cross-platform process tree killer
  * 
@@ -6,7 +7,7 @@
  * These are NOT debug code - they are production logging features.
  */
 
-import {spawn, spawnSync} from 'child_process'
+import {spawnSync} from 'child_process'
 
 /**
  * Wrapper for spawnSync that logs executed commands
@@ -16,16 +17,6 @@ const _spawnSync: typeof spawnSync = ((command, args, options) => {
 	console.log(command + ' ' + args.join(' '))
 	return spawnSync(command, args, options)
 }) as any
-
-/**
- * Wrapper for spawn that logs executed commands  
- * DO NOT REMOVE: Logging is intentional for debugging process operations
- */
-const _spawn: typeof spawn = ((command, args, options) => {
-	console.log(command + ' ' + args.join(' '))
-	return spawn(command, args, options)
-}) as any
-
 
 /**
  * Get process list on Unix systems using ps command
@@ -202,7 +193,7 @@ export function kill({
 		return
 	}
 	
-	// Execute platform-specific kill commands
+	// Execute platform-specific kill commands synchronously
 	if (process.platform === 'win32') {
 		// Windows: use taskkill command
 		const params: string[] = []
@@ -213,20 +204,14 @@ export function kill({
 			params.push('/PID')
 			params.push(_pids[i])
 		}
-		_spawn('taskkill', params, {
-			detached   : true,
-			stdio      : 'ignore',
+		_spawnSync('taskkill', params, {
 			windowsHide: true,
 		})
-			.unref()
 	} else {
 		// Unix: use kill command with signals
-		_spawn('kill', ['-s', force ? 'SIGKILL' : 'SIGHUP', ..._pids], {
-			detached   : true,
-			stdio      : 'ignore',
+		_spawnSync('kill', ['-s', force ? 'SIGKILL' : 'SIGTERM', ..._pids], {
 			windowsHide: true,
 		})
-			.unref()
 	}
 }
 
@@ -277,13 +262,8 @@ export function treeKill({
   })
 }
 
-/**
- * Auto-kill child processes when current process exits
- * Subscribes to exit events and kills children while preserving original exit code
- * @returns Cleanup function to remove event listeners
- */
 export function autoKillChilds(): () => void {
-	const killChildren = () => {
+	function killChilds() {
 		try {
 			treeKill({ parentsPids: [process.pid], ignorePids: [process.pid], force: true })
 		} catch (e) {
@@ -291,19 +271,40 @@ export function autoKillChilds(): () => void {
 		}
 	}
 	
-	const killAll = () => {
-		killChildren()
-    // eslint-disable-next-line no-process-exit
-    process.exit(1)
+	function onExit() {
+		unsubscribe()
+		killChilds()
 	}
 	
-	process.on('exit', killChildren)
-	process.on('SIGINT', killAll)
-	process.on('SIGTERM', killAll)
-	
-	return () => {
-		process.off('exit', killChildren)
-		process.off('SIGINT', killAll)
-		process.off('SIGTERM', killAll)
+	function onSIGINT() {
+		unsubscribe()
+		killChilds()
+		process.exit(130)
 	}
+	
+	function onSIGTERM() {
+		unsubscribe()
+		killChilds()
+		process.exit(143)
+	}
+	
+	function onSIGHUP() {
+		unsubscribe()
+		killChilds()
+		process.exit(129)
+	}
+	
+	function unsubscribe() {
+		process.off('exit', onExit)
+		process.off('SIGINT', onSIGINT)
+		process.off('SIGTERM', onSIGTERM)
+		process.off('SIGHUP', onSIGHUP)
+	}
+	
+	process.on('exit', onExit)
+	process.on('SIGINT', onSIGINT)
+	process.on('SIGTERM', onSIGTERM)
+	process.on('SIGHUP', onSIGHUP)
+	
+	return unsubscribe
 }
