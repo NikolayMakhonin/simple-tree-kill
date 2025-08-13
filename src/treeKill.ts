@@ -291,13 +291,18 @@ export function autoKillChilds(): () => void {
 		}
 	}
 	
+	const killAll = () => {
+		killChildren()
+    process.exit(1)
+	}
+	
 	process.on('exit', killChildren)
-	process.on('SIGINT', killChildren)
-	process.on('SIGTERM', killChildren)
+	process.on('SIGINT', killAll)
+	process.on('SIGTERM', killAll)
 	
 	return () => {
 		process.off('exit', killChildren)
-		process.off('SIGINT', killChildren)
-		process.off('SIGTERM', killChildren)
+		process.off('SIGINT', killAll)
+		process.off('SIGTERM', killAll)
 	}
 }
